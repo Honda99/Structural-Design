@@ -1,0 +1,302 @@
+@page "/beamdesign"
+@using EngDolphin.Client.Models
+@inherits BeamComponent
+
+<head>
+
+    <style>
+
+        .dovShow {
+            display: block;
+        }
+
+        .dovOff {
+            display: none;
+        }
+
+        #dovInputRebar {
+            padding: 0px;
+            margin: 0px;
+        }
+
+        #dovInputTd {
+            padding: 0px;
+            margin: 0px;
+            height: 30px;
+        }
+
+        #dovCollaps {
+            border-bottom: 3px dotted red;
+            width: 100%;
+        }
+
+        .activeRow {
+            border-bottom-color: red;
+        }
+
+        .centerContainer {
+            min-height: 10em;
+            display: table-cell;
+            vertical-align: middle;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+
+</head>
+<h2>Beam Design</h2>
+<button class="btn btn-dark" id="dovCollaps" @onclick='@(()=> DoveDisplay("material"))'>Material Properties</button>
+<div id="dovCollapse1" class='@(doveShowMaterial?"dovShow":"dovOff")'>
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="form-group">
+                <label for="my-input">Concrete Material</label>
+                <select id="my-input" class="form-control" @onchange=@ShowConcMatProp>
+
+                    @foreach (var mat in dovConcMatLibrary)
+                    {
+                        <option value=@mat.Name>@mat.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="@displayConcMat">
+                <div class="form-group">
+                    <label for="">Name</label>
+                    <input type="text" class="form-control" @bind="concMat.Name" id="" placeholder="" />
+                </div>
+
+                <div class="form-group">
+                    <label for="">Unit Weight</label>
+                    <input type="number" class="form-control" @bind="concMat.UnitWt" id="" aria-describedby="helpId" placeholder="" />
+                    <small id="helpId" class="form-text text-muted">Value in (kN/m3)</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="">fck</label>
+                    <input type="number" class="form-control" @bind="concMat.Fck" id="" aria-describedby="helpId" placeholder="" />
+                    <small id="helpId" class="form-text text-muted">Value in MPa</small>
+                </div>
+                <div class="form-group">
+                    <label for="">Elasticity</label>
+                    <input type="number" class="form-control" @bind="concMat.E" id="" aria-describedby="helpId" placeholder="" />
+                    <small id="helpId" class="form-text text-muted">Value in MPa</small>
+                </div>
+                <div class="form-group">
+                    <label for="">Strain</label>
+                    <input type="number" class="form-control" @bind="concMat.St" id="" aria-describedby="helpId" placeholder="" />
+                    <small id="helpId" class="form-text text-muted">Value in MPa</small>
+                </div>
+                <div class="form-group">
+                    <label for="">Poisson ratio</label>
+                    <input type="number" class="form-control" @bind="concMat.PoissonRatio" id="" placeholder="" />
+                </div>
+                <button type="button" class="btn btn-dark" @onclick="@ChangeConcMatProp">Apply</button>
+            </div>
+        </div>
+
+        <!-- rebar material Properties -->
+        <div class="col-lg-6">
+            <div class="form-group">
+                <label for="my-input">Rebar Material</label>
+                <select id="my-input" class="form-control" @onchange=@ShowRebarMatProp>
+                    @foreach (var rebarMat in dovRebarMatLibrary)
+                    {
+                        <option value=@rebarMat.Name>@rebarMat.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="@displayRebarMat">
+                <div class="form-group">
+                    <label for="">Name</label>
+                    <input type="text" class="form-control" @bind="rebarMat.Name" id="" aria-describedby="helpId" placeholder="" />
+                </div>
+
+                <div class="form-group">
+                    <label for="">Unit Weight</label>
+                    <input type="number" class="form-control" @bind="rebarMat.UnitWt" id="" aria-describedby="helpId" placeholder="" />
+                    <small id="helpId" class="form-text text-muted">Enter value in (kN/m3)</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="">fyk(Mpa)</label>
+                    <input type="number" class="form-control" @bind="rebarMat.Fyk" id="" aria-describedby="helpId" placeholder="" />
+                    <small id="helpId" class="form-text text-muted">Enter value in MPa</small>
+                </div>
+                <div class="form-group">
+                    <label for="">Elasticity</label>
+                    <input type="number" class="form-control" @bind="rebarMat.E" id="" aria-describedby="helpId" placeholder="" />
+                    <small id="helpId" class="form-text text-muted">Enter value in MPa</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="">Poisson ratio</label>
+                    <input type="number" class="form-control" @bind="rebarMat.PoissonRatio" id="" aria-describedby="helpId" placeholder="" />
+                </div>
+                <button type="button" class="btn btn-default" @onclick="@ChangeRebarMatProp">Apply</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+<button class="btn btn-dark" id="dovCollaps" @onmousedown='@(()=> DoveDisplay("section"))' @onclick='@SectionGraphics'>Section Properties</button>
+<div id="dovCollapse2" class='@(doveShowSection?"dovShow":"dovOff")'>
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="form-group">
+                <label for="my-input">Select Concrete Material</label>
+                <select id="my-input" class="form-control" @onchange=@SelectedConcMat >
+                    @foreach (var mat in dovConcMatLibrary)
+                    {
+                        <option value=@mat.Name>@mat.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="my-input">Select Rebar Material</label>
+                <select id="my-input" class="form-control" @onchange=@SelectedRebarMat>
+                    @foreach (var rebarMat in dovRebarMatLibrary)
+                    {
+                        <option value=@rebarMat.Name>@rebarMat.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="">Width:</label>
+                <input type="number" class="form-control" @bind="secRec.Width" id="" aria-describedby="helpId" placeholder="" />
+                <small id="helpId" class="form-text text-muted">Enter width in mm</small>
+            </div>
+
+            <div class="form-group">
+                <label for="">Height:</label>
+                <input type="number" class="form-control" @bind="secRec.Height" id="" aria-describedby="helpId" placeholder="" />
+                <small id="helpId" class="form-text text-muted">Enter height in mm</small>
+            </div>
+            <button type="button" class="btn btn-default" @onclick="@SectionGraphics">Apply</button>
+        </div>
+        <div class="col-lg-6">
+            <div id="sectionCanvas" class="centerContainer" style="background-color:@SecBackColor;">
+                <Canvas width="@SecCanvWidth" height="@SecCanvHeight" @ref="SectionCanvas"></Canvas>
+            </div>
+            <div><span style="color:@RebarLocMsgColor">@RebarLocationMessage</span></div>
+            <div class="row">
+                <div class="col-lg-10" id="dovRebarsTable">
+
+                    <div id="Reinforcement">
+                        <table class="table table-light">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>No</th>
+                                    <th>Diameter</th>
+                                    <th>Loc(X)</th>
+                                    <th>Loc(Y)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                @foreach (var rb in rebarLocLibrary)
+                                {
+                                    <tr>
+                                        <td id="dovInputTd">@rb.No</td>
+                                        <td id="dovInputTd"><input type="number" id="dovInputRebar" class='form-control @(rb.Activated?"activeRow":"")' @bind="rb.Diameter" required="required" @onmousedown="@(e=>RebarActivateRow(e,rb.No))" /></td>
+                                        <td id="dovInputTd"> <input type="number" id="dovInputRebar" class='form-control @(rb.Activated?"activeRow":"")' @bind="rb.LocX" required="required" @onmousedown="@(e=>RebarActivateRow(e,rb.No))" /></td>
+                                        <td id="dovInputTd"> <input type="number" id="dovInputRebar" class='form-control @(rb.Activated?"activeRow":"")' @bind="rb.LocY" required="required" @onmousedown="@(e=>RebarActivateRow(e,rb.No))" /></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="col-lg-2">
+
+                    <button type="button" class="btn btn-outline-dark" style="width:80px" @onclick="@InsertRebarRow">Insert </button>
+                    <button type="button" class="btn btn-outline-dark" style="width:80px" @onclick="@DeleteRebarRow">Delete </button>
+                    <button type="button" class="btn btn-outline-dark" style="width:80px" @onclick="@SectionGraphics">Apply </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<button class="btn btn-dark" id="dovCollaps"  @onclick='@(()=>DoveDisplay("design"))'>Design Result</button>
+<div id="dovCollapse1" class='@(doveShowDesign&&continueDesign?"dovShow":"dovOff")'>
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="form-group">
+                <label for="my-input">Design Option</label>
+                <select id="my-input" class="form-control" @onchange=@DisplayDsgnOpt>
+                    <option value="run">Run</option>
+                    <option value="pref">Preference</option>
+
+                </select>
+            </div>
+            <div id="dovDsgnPreference" class='@(dispDsgnPref?"dovShow":"dovOff")'>
+                <table class="table table-light" style="text-align:center">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Preference</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td id="dovPref">Design Code</td>
+                            <td id="dovPref">
+                                <div class="form-group">
+                                    <select id="my-input" class="form-control">
+                                        <option>@DsgnPref.DesignCode</option>
+                                    </select>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td id="dovPref">Conc Safty Factor</td>
+                            <td id="dovPref"><input type="number" id="dovInputPref" class='form-control' required="required" @bind="DsgnPref.SaftyFacConc" /></td>
+                        </tr>
+                        <tr>
+                            <td id="dovPref">Rebar Safty Factor</td>
+                            <td id="dovPref"><input type="number" id="dovInputPref" class='form-control' required="required" @bind="DsgnPref.SaftyFacRebar" /></td>
+                        </tr>
+                        <tr>
+                            <td id="dovPref">Alpha</td>
+                            <td id="dovPref"><input type="number" id="dovInputPref" class='form-control' required="required" @bind="DsgnPref.Alpha" /></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="dovDsgnDisplay" class='@(dispDsgnRslt?"dovShow":"dovOff")'>
+                <div class="form-group">
+                    <label for="">My=:@BeamDsgnRslt.My kNm</label>
+                </div>
+                <div class="form-group">
+                    <label for="">My of Concrete=: @BeamDsgnRslt.MyConc kNm</label>
+                </div>
+                <div class="form-group">
+                    <label for="">My of Bottom Bars=: @BeamDsgnRslt.MyBottomRebar kNm</label>
+                </div>
+                <div class="form-group">
+                    <label for="">My of Compression Bars=: @BeamDsgnRslt.MyTopRebar kNm</label>
+                </div>
+
+                <div class="form-group">
+                    <label for="">Tensile Strain Y=: @BeamDsgnRslt.TensStrainY</label>
+                </div>
+                <div class="form-group">
+                    <label for="">Nuetral Axis=: @BeamDsgnRslt.NeutralAxisY mm</label>
+                </div>
+                <div class="form-group">
+                    <label for="" style="color:red">Design Info=: @BeamDsgnRslt.DesignInfo</label>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="centerContainer" style="background-color:@DsgnBackColor">
+                <Canvas width="@DsgnCanvWidth" height="@DsgnCanvHeight" @ref="DesignCanvas"></Canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+

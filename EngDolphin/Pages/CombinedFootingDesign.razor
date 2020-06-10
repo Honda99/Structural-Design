@@ -1,0 +1,406 @@
+﻿@page "/combinedfooting"
+@using EngDolphin.Client.Models
+@inherits CombinedFootingComp
+
+<head>
+
+    <style>
+
+        .dovShow {
+            display: block;
+        }
+
+        .dovOff {
+            display: none;
+        }
+
+        #dovInputRebar {
+            padding: 0px;
+            margin: 0px;
+        }
+
+        #dovInputTd {
+            padding: 0px;
+            margin: 0px;
+            height: 30px;
+        }
+
+        #dovCollaps {
+            border-bottom: 3px dotted red;
+            width: 100%;
+        }
+
+        .activeRow {
+            border-bottom-color: red;
+        }
+
+        .centerContainer {
+            min-height: 10em;
+            display: table-cell;
+            vertical-align: middle;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #tableRow {
+            padding: 0px 0px 0px 10px;
+            margin: 0px 0px 0px 10px;
+            align-content: center;
+            align-items: center;
+        }
+    </style>
+
+</head>
+<h2>Combined Footing Design</h2>
+<button class="btn btn-dark" id="dovCollaps" @onclick='@(()=> DoveDisplay("material"))'>Material Properties</button>
+<div id="dovCollapse1" class='@(doveShowMaterial?"dovShow":"dovOff")'>
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="form-group">
+                <label for="my-input">Concrete Material</label>
+                <select id="my-input" class="form-control" @onchange="@ShowConcMatProp">
+
+                    @foreach (var mat in dovConcMatLibrary)
+                    {
+                        <option value=@mat.Name>@mat.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="@displayConcMat">
+                <div class="form-group">
+                    <label for="">Name</label>
+                    <input type="text" class="form-control" @bind="concMat.Name" id="" placeholder="" />
+                </div>
+
+                <div class="form-group">
+                    <label for="">Unit Weight</label>
+                    <input type="number" class="form-control" @bind="concMat.UnitWt" id="" aria-describedby="helpId" placeholder="" />
+                    <small id="helpId" class="form-text text-muted">Value in (kN/m3)</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="">fck</label>
+                    <input type="number" class="form-control" @bind="concMat.Fck" id="" aria-describedby="helpId" placeholder="" />
+                    <small id="helpId" class="form-text text-muted">Value in MPa</small>
+                </div>
+                <div class="form-group">
+                    <label for="">Modulus of Elastisity</label>
+                    <input type="number" class="form-control" @bind="concMat.E" id="" aria-describedby="helpId" placeholder="" />
+                    <small id="helpId" class="form-text text-muted">Value in MPa</small>
+                </div>
+                <div class="form-group">
+                    <label for="">Strain</label>
+                    <input type="number" class="form-control" @bind="concMat.St" id="" aria-describedby="helpId" placeholder="" />
+                    <small id="helpId" class="form-text text-muted">Value in MPa</small>
+                </div>
+                <div class="form-group">
+                    <label for="">poisson ratio</label>
+                    <input type="number" class="form-control" @bind="concMat.PoissonRatio" id="" placeholder="" />
+                </div>
+                <button type="button" class="btn btn-default" @onclick="@ChangeConcMatProp">Apply</button>
+            </div>
+        </div>
+
+        <!-- rebar material Properties -->
+        <div class="col-lg-6">
+            <div class="form-group">
+                <label for="my-input">Rebar Material</label>
+                <select id="my-input" class="form-control" @onchange=@ShowRebarMatProp>
+                    @foreach (var rebarMat in dovRebarMatLibrary)
+                    {
+                        <option value=@rebarMat.Name>@rebarMat.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="@displayRebarMat">
+                <div class="form-group">
+                    <label for="">Name</label>
+                    <input type="text" class="form-control" @bind="rebarMat.Name" id="" aria-describedby="helpId" placeholder="" />
+                </div>
+
+                <div class="form-group">
+                    <label for="">Unit Weight</label>
+                    <input type="number" class="form-control" @bind="rebarMat.UnitWt" id="" aria-describedby="helpId" placeholder="" />
+                    <small id="helpId" class="form-text text-muted">Enter value in (kN/m3)</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="">fyk(Mpa)</label>
+                    <input type="number" class="form-control" @bind="rebarMat.Fyk" id="" aria-describedby="helpId" placeholder="" />
+                    <small id="helpId" class="form-text text-muted">Enter value in MPa</small>
+                </div>
+                <div class="form-group">
+                    <label for="">Modulus of Elasticity(Mpa)</label>
+                    <input type="number" class="form-control" @bind="rebarMat.E" id="" aria-describedby="helpId" placeholder="" />
+                    <small id="helpId" class="form-text text-muted">Enter value in MPa</small>
+                </div>
+                <div class="form-group">
+                    <label for="">Strain</label>
+                    <input type="number" class="form-control" @bind="rebarMat.St" id="" aria-describedby="helpId" placeholder="" />
+                </div>
+                <div class="form-group">
+                    <label for="">poisson ratio</label>
+                    <input type="number" class="form-control" @bind="rebarMat.PoissonRatio" id="" aria-describedby="helpId" placeholder="" />
+                </div>
+                <button type="button" class="btn btn-default" @onclick="@ChangeRebarMatProp">Apply</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+<button class="btn btn-dark" id="dovCollaps" @onmousedown='@(()=> DoveDisplay("footingdimension"))' @onclick='@(DrawCombFoot)'>Section Properties</button>
+<div id="dovCollapse2" class='@(showFootingDimension?"dovShow":"dovOff")'>
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="form-group">
+                <label for="my-input">Select Concrete Material</label>
+                <select id="my-input" class="form-control" @onchange=@SelectedConcMat>
+                    @foreach (var mat in dovConcMatLibrary)
+                    {
+                        <option value=@mat.Name>@mat.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="my-input">Select Rebar Material</label>
+                <select id="my-input" class="form-control" @onchange=@SelectedRebarMat>
+                    @foreach (var rebarMat in dovRebarMatLibrary)
+                    {
+                        <option value=@rebarMat.Name>@rebarMat.Name</option>
+                    }
+                </select>
+            </div>
+            <button class="btn btn-dark" @onclick=@UpdateLoadInput>@LoadName</button>
+
+            <div class="form-group" style="border-bottom-width:thick;border-bottom:double;border-top:thin;">
+                Serviceability Limit State
+                <div class="row">
+
+                    <div class="col-3">   <label for="">@fData.Loads[LoadInputNo].sMxName:</label> </div>
+                    <div class="col-8">
+                        <input type="number" class="form-control" @bind="fData.Loads[LoadInputNo].sMx" id="" aria-describedby="helpId" placeholder="kNm" />
+                        <small id="helpId" class="form-text text-muted">Unfactored Moment Value in (kNm)</small>
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="col-3">   <label for="">@fData.Loads[LoadInputNo].sMyName:</label> </div>
+                    <div class="col-8">
+                        <input type="number" class="form-control" @bind="fData.Loads[LoadInputNo].sMy" id="" aria-describedby="helpId" placeholder="kNm" />
+                        <small id="helpId" class="form-text text-muted">Unfactored Moment Value in (kNm)</small>
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="col-3">  <label for="">@fData.Loads[LoadInputNo].sPnName:</label> </div>
+                    <div class="col-8">
+                        <input type="number" class="form-control" @bind="fData.Loads[LoadInputNo].sPn" id="" aria-describedby="helpId" placeholder="kN" />
+                        <small id="helpId" class="form-text text-muted">Unfactored Axial load Value in (kN)</small>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group" style="border-bottom-width:thick;border-bottom:double;border-top:thin;">
+                Ultimate Limit State
+                <div class="row">
+
+                    <div class="col-3">   <label for="">@fData.Loads[LoadInputNo].MxName:</label> </div>
+                    <div class="col-8">
+                        <input type="number" class="form-control" @bind="fData.Loads[LoadInputNo].Mx" id="" aria-describedby="helpId" placeholder="kNm" />
+                        <small id="helpId" class="form-text text-muted">Factored Moment Value in (kNm)</small>
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="col-3">   <label for="">@fData.Loads[LoadInputNo].MyName:</label> </div>
+                    <div class="col-8">
+                        <input type="number" class="form-control" @bind="fData.Loads[LoadInputNo].My" id="" aria-describedby="helpId" placeholder="kNm" />
+                        <small id="helpId" class="form-text text-muted">Factored Moment Value in (kNm)</small>
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="col-3">  <label for="">@fData.Loads[LoadInputNo].PnName:</label> </div>
+                    <div class="col-8">
+                        <input type="number" class="form-control" @bind="fData.Loads[LoadInputNo].Pn" id="" aria-describedby="helpId" placeholder="kN" />
+                        <small id="helpId" class="form-text text-muted">Factored Axial load Value in (kN)</small>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-5">  <label for="">Bearing Capacity:</label> </div>
+                    <div class="col-6">
+                        <input type="number" class="form-control" @bind="fData.UltBearingCap" id="" aria-describedby="helpId" placeholder="kN" />
+                        <small id="helpId" class="form-text text-muted">Value in (kN/m2)</small>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-5">  <label for="">Safty Factor:</label> </div>
+                    <div class="col-6">
+                        <input type="number" class="form-control" @bind="fData.SaftyFactor" id="" aria-describedby="helpId" placeholder="kN" />
+                    </div>
+                </div>
+            </div>
+
+
+
+        </div>
+        <div class="col-lg-8">
+            <div id="sectionCanvas" class="centerContainer" style="background-color:@footingBackColor;">
+                <Canvas width="@footingCanvWidth" height="@footingCanvHeight" @ref="FootingCanvas"></Canvas>
+            </div>
+            <div class="row form-group">
+                <div class="col-lg-6">
+                    <table class="table table-bordered">
+                        <thead>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td scope="row" id="tableRow"> <label for=""> W1:</label></td>
+                                <td id="tableRow"><input type="number" class="form-control" @bind="fData.W1" id="" aria-describedby="helpId" placeholder="in cm" /></td>
+                            </tr>
+                            <tr>
+                                <td scope="row" id="tableRow"> <label for=""> W2:</label></td>
+                                <td id="tableRow"><input type="number" class="form-control" @bind="fData.W2" id="" aria-describedby="helpId" placeholder="in cm" /></td>
+                            </tr>
+                            <tr>
+                                <td scope="row" id="tableRow"> <label for="">X1:</label></td>
+                                <td id="tableRow"><input type="number" class="form-control" @bind="fData.X1" id="" aria-describedby="helpId" placeholder="in cm" /></td>
+                            </tr>
+                            <tr>
+                                <td scope="row" id="tableRow"> <label for="">X2:</label></td>
+                                <td id="tableRow"><input type="number" class="form-control" @bind="fData.X2" id="" aria-describedby="helpId" placeholder="in cm" /></td>
+                            </tr>
+                            <tr>
+                                <td scope="row" id="tableRow"> <label for="">X3:</label></td>
+                                <td id="tableRow"><input type="number" class="form-control" @bind="fData.X3" id="" aria-describedby="helpId" placeholder="in cm" /></td>
+                            </tr>
+                            <tr>
+                                <td scope="row"> <label for="">Thickness(cm):</label></td>
+                                <td><input type="number" class="form-control" @bind="fData.Thickness" id="" aria-describedby="helpId" placeholder="in cm" /></td>
+                            </tr>
+                            <tr>
+                                <td scope="row"> <label for="">Rebar cover(mm):</label></td>
+                                <td><input type="number" class="form-control" @bind="fData.Cover" id="" aria-describedby="helpId" placeholder="in cm" /></td>
+                            </tr>
+                            <tr>
+                                <td scope="row"> <label for="">Rebar diameter(mm):</label></td>
+                                <td><input type="number" class="form-control" @bind="fData.Dia" id="" aria-describedby="helpId" placeholder="in cm" /></td>
+                            </tr>
+                            <tr>
+                                <td scope="row">  <button type="button" class="btn btn-dark" @onclick="@DrawCombFoot">Apply</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div style="color:red">@dimError</div>
+                </div>
+                <div class="col-lg-6">
+                    <table class="table table-striped table-inverse table-responsive">
+                        <thead class="thead-inverse">
+
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td scope="row" style="margin-right:0px"> <label for="">C1 Width(cm):</label></td>
+                                <td style="margin-right:0px"><input type="number" class="form-control" @bind="fData.Cw1" id="" aria-describedby="helpId" placeholder="in cm" /></td>
+                            </tr>
+                            <tr>
+                                <td scope="row" style="margin-right:0px"> <label for="">C1 Length(cm):</label></td>
+                                <td style="margin-right:0px"><input type="number" class="form-control" @bind="fData.Cl1" id="" aria-describedby="helpId" placeholder="in cm" /></td>
+                            </tr>
+                            <tr>
+                                <td scope="row" style="margin-right:0px"> <label for="">C2 Width(cm):</label></td>
+                                <td style="margin-right:0px"><input type="number" class="form-control" @bind="fData.Cw2" id="" aria-describedby="helpId" placeholder="in cm" /></td>
+                            </tr>
+                            <tr>
+                                <td scope="row" style="margin-right:0px">  <label for="">C2 Length(cm):</label></td>
+                                <td style="margin-right:0px">  <input type="number" class="form-control" @bind="fData.Cl2" id="" aria-describedby="helpId" placeholder="in cm" /></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div style="color:red">@locationError</div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<button class="btn btn-dark" id="dovCollaps" @onclick='@(()=>DoveDisplay("analysisdesign"))' @onmousedown="@DrawCombFootPlan">Analysis and Design</button>
+<div id="dovCollapse1" class='@(showAnalysisDesign?"dovShow":"dovOff")'>
+    <div class="row">
+        <div class="col-lg-4" style="">
+            <div class="row">
+                <div class="col-lg-6">
+                    <button class="btn btn-secondary" aria-expanded="false" @onclick="@DisplayDsgnOpt">@RunorPref</button>
+                </div>
+            </div>
+            <div id="dovDsgnPreference" class='@(dispDsgnResult?"dovShow":"dovOff")'>
+                <div>Design Results</div>
+                <div style="color:@warning">@fDesign.DesignCondition</div>
+                <div>VRdc-Punching=@fDesign.VRdcPunching MPa</div>
+                <div>VEd-Puching=@fDesign.VEdPunching MPa</div>
+                <div>VRdc-Widebeam=@fDesign.VRdcWidebeam kN</div>
+                <div>VEd-WideBeam=@fDesign.VEdWideBeam kN</div>
+                <div>Span Rebar=@fDesign.Asx mm2</div>
+                <div>Transverse Rebar=@fDesign.Asy mm2</div>
+                <div>Support-Rebar_1=@fDesign.AsxSup1 mm2</div>
+                <div>Support-Rebar_2=@fDesign.AsxSup2 mm2</div>
+
+            </div>
+            <div id="dovDsgnPreference" class='@(dispDsgnPref?"dovShow":"dovOff")'>
+                <table class="table table-light" style="text-align:center">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Preference</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td id="dovPref">Design Code</td>
+                            <td id="dovPref">
+                                <div class="form-group">
+                                    <select id="my-input" class="form-control">
+                                        <option>@DsgnPref.DesignCode</option>
+                                    </select>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td id="dovPref">Conc Safty Factor</td>
+                            <td id="dovPref"><input type="number" id="dovInputPref" class='form-control' required="required" @bind="DsgnPref.SaftyFacConc" /></td>
+                        </tr>
+                        <tr>
+                            <td id="dovPref">Rebar Safty Factor</td>
+                            <td id="dovPref"><input type="number" id="dovInputPref" class='form-control' required="required" @bind="DsgnPref.SaftyFacRebar" /></td>
+                        </tr>
+                        <tr>
+                            <td id="dovPref">Alpha</td>
+                            <td id="dovPref"><input type="number" id="dovInputPref" class='form-control' required="required" @bind="DsgnPref.Alpha" /></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+
+        </div>
+        <div class="col-lg-8">
+            <div class="centerContainer" style="background-color:@DsgnBackColor">
+                <Canvas width="@DiagramCanvWidth" height="@DiagramCanvHeight" @ref="DiagramCanvas"></Canvas>
+            </div>
+        </div>
+    </div>
+</div>
+<button class="btn btn-dark" id="dovCollaps" @onclick='@(()=>DoveDisplay("detailing"))' @onmousedown="@CombFootDetailing">Detailing</button>
+<div id="dovCollapse1" class='@(showDetailing?"dovShow":"dovOff")'>
+    <div class="row" style="display:flex;justify-content:center">
+        <div class="col-lg-8">
+            <div class="centerContainer" style="background-color:@DetailBackColor">
+                <Canvas width="@DetailWidth" height="@DetailHeight" @ref="DetailCanvas"></Canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
